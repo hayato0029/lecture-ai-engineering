@@ -1,19 +1,21 @@
 import os
-import torch
-from transformers import pipeline
 import time
 import traceback
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from typing import Any, Dict, List, Optional
+
+import nest_asyncio
+import torch
+import uvicorn
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
-import uvicorn
-import nest_asyncio
 from pyngrok import ngrok
+from transformers import pipeline
 
 # --- 設定 ---
 # モデル名を設定
-MODEL_NAME = "google/gemma-2-2b-jpn-it"  # お好みのモデルに変更可能です
+# MODEL_NAME = "google/gemma-2-2b-jpn-it"  # お好みのモデルに変更可能です
+MODEL_NAME = "google/gemma-2-2b-it"
 print(f"モデル名を設定: {MODEL_NAME}")
 
 # --- モデル設定クラス ---
