@@ -1,15 +1,17 @@
 import os
-import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer
 import pickle
 import time
+
 import great_expectations as gx
+import pandas as pd
+from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
 
 class DataLoader:
     """データロードを行うクラス"""
@@ -21,7 +23,7 @@ class DataLoader:
             return pd.read_csv(path)
         else:
             # ローカルのファイル
-            local_path = "data/Titanic.csv"
+            local_path = "day5/演習2/data/Titanic.csv"
             if os.path.exists(local_path):
                 return pd.read_csv(local_path)
 
@@ -246,6 +248,34 @@ def test_model_performance():
     assert (
         metrics["inference_time"] < 1.0
     ), f"推論時間が長すぎます: {metrics['inference_time']}秒"
+
+
+def test_inference_speed_and_accuracy():
+    """
+    推論時間と精度をまとめてチェックする簡易関数．
+    戻り値の dict には 1 サンプルあたりの平均レイテンシ［ミリ秒］と正解率が入ります．
+    """
+    # データ準備
+    data = DataLoader.load_titanic_data()
+    X, y = DataLoader.preprocess_titanic_data(data)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+    # モデル学習
+    model = ModelTester.train_model(X_train, y_train)
+
+    # 推論時間計測
+    start = time.perf_counter()
+    y_pred = model.predict(X_test)
+    total_time = time.perf_counter() - start
+    latency_ms = total_time / len(X_test) * 1000  # 1 サンプルあたり
+
+    # 精度計測
+    acc = accuracy_score(y_test, y_pred)
+
+    print(f"平均推論時間：{latency_ms:.3f} ms／サンプル，精度：{acc:.4f}")
+    return {"latency_ms": latency_ms, "accuracy": acc}
 
 
 if __name__ == "__main__":
